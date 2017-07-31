@@ -16,6 +16,8 @@ namespace Frostmourne_basics
 
         public string State { get; set; }
 
+        public Symbol() { }
+
         public Symbol(int _id, string _name, string _description)
         {
             this.Id = _id;
