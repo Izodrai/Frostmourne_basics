@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace Frostmourne_basics
 {
-    public class Class1
+    public class Xtb
     {
-        System.
     }
 }
