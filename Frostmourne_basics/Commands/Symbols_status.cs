@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using xAPI.Sync;
 
-namespace Frostmourne_basics
+namespace Frostmourne_basics.Commands
 {
-    public class Commands
+    public partial class Commands
     {
         public static Error Load_not_inactive_symbols(ref SyncAPIConnector Xtb_api_connector, ref Configuration configuration, ref Mysql MyDB, ref List<Symbol> _sl)
         {
@@ -33,6 +33,11 @@ namespace Frostmourne_basics
         public static Error Load_standby_symbols(ref SyncAPIConnector Xtb_api_connector, ref Configuration configuration, ref Mysql MyDB, ref List<Symbol> _sl)
         {
             return MyDB.Load_standby_symbols(ref _sl);
+        }
+
+        public static Error Load_all_symbols(ref SyncAPIConnector Xtb_api_connector, ref Configuration configuration, ref Mysql MyDB, ref List<Symbol> _sl)
+        {
+            return MyDB.Load_all_symbols_status(ref _sl);
         }
 
         public static Error Load_all_symbols_status(ref SyncAPIConnector Xtb_api_connector, ref Configuration configuration, ref Mysql MyDB, ref List<Symbol> _sl)
@@ -61,13 +66,13 @@ namespace Frostmourne_basics
                 default:
                     return new Error(true, "not supported status : " + _s_to_update.State);
             }
-            
+
             List<Symbol> symbols_list = new List<Symbol>();
             Symbol symbol = new Symbol();
 
             Error err = new Error();
 
-            err = Commands.Load_all_symbols_status(ref Xtb_api_connector, ref configuration, ref MyDB, ref symbols_list);
+            err = Load_all_symbols(ref Xtb_api_connector, ref configuration, ref MyDB, ref symbols_list);
             if (err.IsAnError)
                 return err;
 
@@ -82,7 +87,7 @@ namespace Frostmourne_basics
 
             if (symbol.Id == 0)
                 return new Error(false, "This ID doesn't exist : " + _s_to_update.Id.ToString());
-            
+
             return MyDB.Update_symbol_status(_s_to_update);
         }
     }

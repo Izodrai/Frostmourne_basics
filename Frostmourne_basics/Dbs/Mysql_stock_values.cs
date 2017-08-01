@@ -6,14 +6,14 @@ namespace Frostmourne_basics.Dbs
 {
     public partial class Mysql
     {
-        public void Load_bids_values_for_symbol_between_to_date(ref List<Bid> _bids, DateTime _from_d, DateTime _to_d, Symbol symbol)
+        public void Load_bids_values_for_symbol_between_to_date(ref List<Bid> _bids, DateTime _from_d, DateTime _to_d, Symbol _symbol)
         {
             this.Connect();
 
             MySqlCommand cmd = new MySqlCommand("SELECT id, bid_at, last_bid, calculations FROM stock_values WHERE symbol_id = @symbol_id AND bid_at >= @from AND bid_at <= @to", this.Mysql_connector);
 
             cmd.Parameters.Clear();
-            cmd.Parameters.AddWithValue("symbol_id", symbol.Id);
+            cmd.Parameters.AddWithValue("symbol_id", _symbol.Id);
             cmd.Parameters.AddWithValue("from", _from_d.ToString("yyyy-MM-dd HH:mm:ss"));
             cmd.Parameters.AddWithValue("to", _to_d.ToString("yyyy-MM-dd HH:mm:ss"));
 
@@ -23,20 +23,20 @@ namespace Frostmourne_basics.Dbs
                 {
                     object[] values = new object[reader.FieldCount];
                     reader.GetValues(values);
-                    _bids.Add(new Bid(Convert.ToInt32(values[0]), new Symbol(symbol.Id, symbol.Name, ""), DateTime.Parse(Convert.ToString(values[1])), Convert.ToDouble(values[2]), Convert.ToString(values[3])));
+                    _bids.Add(new Bid(Convert.ToInt32(values[0]), _symbol, DateTime.Parse(Convert.ToString(values[1])), Convert.ToDouble(values[2]), Convert.ToString(values[3])));
                 }
 
             }
         }
         
-        public void Load_bids_values_for_symbol_between_from_date(ref List<Bid> _bids, DateTime _from_d, Symbol symbol)
+        public void Load_bids_values_for_symbol_between_from_date(ref List<Bid> _bids, DateTime _from_d, Symbol _symbol)
         {
             this.Connect();
 
             MySqlCommand cmd = new MySqlCommand("SELECT id, bid_at, last_bid, calculations FROM stock_values WHERE symbol_id = @symbol_id AND bid_at >= @from", this.Mysql_connector);
 
             cmd.Parameters.Clear();
-            cmd.Parameters.AddWithValue("symbol_id", symbol.Id);
+            cmd.Parameters.AddWithValue("symbol_id", _symbol.Id);
             cmd.Parameters.AddWithValue("from", _from_d.ToString("yyyy-MM-dd HH:mm:ss"));
 
             using (MySqlDataReader reader = cmd.ExecuteReader())
@@ -45,11 +45,90 @@ namespace Frostmourne_basics.Dbs
                 {
                     object[] values = new object[reader.FieldCount];
                     reader.GetValues(values);
-                    _bids.Add(new Bid(Convert.ToInt32(values[0]), new Symbol(symbol.Id, symbol.Name, ""), DateTime.Parse(Convert.ToString(values[1])), Convert.ToDouble(values[2]), Convert.ToString(values[3])));
+                    _bids.Add(new Bid(Convert.ToInt32(values[0]), _symbol, DateTime.Parse(Convert.ToString(values[1])), Convert.ToDouble(values[2]), Convert.ToString(values[3])));
                 }
 
             }
         }
+
+
+        public void Load_last_value_for_symbol(ref Bid _bid, Symbol _symbol)
+        {
+            this.Connect();
+
+            MySqlCommand cmd = new MySqlCommand("SELECT id, bid_at, last_bid, calculations FROM stock_values WHERE symbol_id = @symbol_id AND bid_at = (SELECT MAX(bid_at) FROM stock_values WHERE symbol_id = @symbol_id)", this.Mysql_connector);
+
+            cmd.Parameters.Clear();
+            cmd.Parameters.AddWithValue("symbol_id", _symbol.Id);
+
+            using (MySqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    object[] values = new object[reader.FieldCount];
+                    reader.GetValues(values);
+                    _bid = new Bid(Convert.ToInt32(values[0]), _symbol, DateTime.Parse(Convert.ToString(values[1])), Convert.ToDouble(values[2]), Convert.ToString(values[3]));
+                }
+
+            }
+        }
+
+
+        public void Count_value_for_symbol(ref int _ct, Symbol _symbol)
+        {
+            this.Connect();
+
+            MySqlCommand cmd = new MySqlCommand("SELECT COUNT(*) FROM stock_values WHERE symbol_id = @symbol_id", this.Mysql_connector);
+
+            cmd.Parameters.Clear();
+            cmd.Parameters.AddWithValue("symbol_id", _symbol.Id);
+
+            using (MySqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    object[] values = new object[reader.FieldCount];
+                    reader.GetValues(values);
+                    _ct = Convert.ToInt32(values[0]);
+                }
+
+            }
+        }
+
+        public void Count_value_by_day_for_symbol(Symbol _symbol, DateTime _from, DateTime _to)
+        {
+            this.Connect();
+
+            MySqlCommand cmd = new MySqlCommand("SELECT COUNT(*), DATE(bid_at) FROM stock_values WHERE symbol_id = @symbol_id AND DATE(bid_at) BETWEEN @from AND @to GROUP BY DATE(bid_at)", this.Mysql_connector);
+
+            cmd.Parameters.Clear();
+            cmd.Parameters.AddWithValue("symbol_id", _symbol.Id);
+            cmd.Parameters.AddWithValue("from", _from.ToString("yyyy-MM-dd HH:mm:ss"));
+            cmd.Parameters.AddWithValue("to", _to.ToString("yyyy-MM-dd HH:mm:ss"));
+
+            using (MySqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    object[] values = new object[reader.FieldCount];
+                    reader.GetValues(values);
+
+                    _ct = Convert.ToInt32(values[0]);
+                }
+
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
 
         public Error Insert_or_update_bids_values(List<Bid> _bids)
         {

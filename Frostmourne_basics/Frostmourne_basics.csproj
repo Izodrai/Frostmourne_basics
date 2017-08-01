@@ -49,7 +49,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bid.cs" />
-    <Compile Include="Commands.cs" />
+    <Compile Include="Commands\Stock_values.cs" />
+    <Compile Include="Commands\Symbols_status.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Dbs\Mysql.cs" />
     <Compile Include="Dbs\Mysql_stock_values.cs" />
