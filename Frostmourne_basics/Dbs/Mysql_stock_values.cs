@@ -29,29 +29,6 @@ namespace Frostmourne_basics.Dbs
             }
         }
         
-        public void Load_bids_values_for_symbol_between_from_date(ref List<Bid> _bids, DateTime _from_d, Symbol _symbol)
-        {
-            this.Connect();
-
-            MySqlCommand cmd = new MySqlCommand("SELECT id, bid_at, last_bid, calculations FROM stock_values WHERE symbol_id = @symbol_id AND bid_at >= @from", this.Mysql_connector);
-
-            cmd.Parameters.Clear();
-            cmd.Parameters.AddWithValue("symbol_id", _symbol.Id);
-            cmd.Parameters.AddWithValue("from", _from_d.ToString("yyyy-MM-dd HH:mm:ss"));
-
-            using (MySqlDataReader reader = cmd.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    object[] values = new object[reader.FieldCount];
-                    reader.GetValues(values);
-                    _bids.Add(new Bid(Convert.ToInt32(values[0]), _symbol, DateTime.Parse(Convert.ToString(values[1])), Convert.ToDouble(values[2]), Convert.ToString(values[3])));
-                }
-
-            }
-        }
-
-
         public void Load_last_value_for_symbol(ref Bid _bid, Symbol _symbol)
         {
             this.Connect();
@@ -72,8 +49,7 @@ namespace Frostmourne_basics.Dbs
 
             }
         }
-
-
+        
         public void Count_value_for_symbol(ref int _ct, Symbol _symbol)
         {
             this.Connect();
@@ -95,7 +71,7 @@ namespace Frostmourne_basics.Dbs
             }
         }
 
-        public void Count_value_by_day_for_symbol(Symbol _symbol, DateTime _from, DateTime _to)
+        public void Count_value_by_day_for_symbol(Symbol _symbol, DateTime _from, DateTime _to, ref List<Bid_by_date> bids_ct)
         {
             this.Connect();
 
@@ -105,7 +81,7 @@ namespace Frostmourne_basics.Dbs
             cmd.Parameters.AddWithValue("symbol_id", _symbol.Id);
             cmd.Parameters.AddWithValue("from", _from.ToString("yyyy-MM-dd HH:mm:ss"));
             cmd.Parameters.AddWithValue("to", _to.ToString("yyyy-MM-dd HH:mm:ss"));
-
+            
             using (MySqlDataReader reader = cmd.ExecuteReader())
             {
                 while (reader.Read())
@@ -113,19 +89,11 @@ namespace Frostmourne_basics.Dbs
                     object[] values = new object[reader.FieldCount];
                     reader.GetValues(values);
 
-                    _ct = Convert.ToInt32(values[0]);
+                    bids_ct.Add(new Bid_by_date(DateTime.Parse(Convert.ToString(values[1])), Convert.ToInt32(values[0])));
                 }
-
             }
         }
-
-
-
-
-
-
-
-
+        
 
 
 
