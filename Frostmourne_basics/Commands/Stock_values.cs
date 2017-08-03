@@ -35,7 +35,9 @@ namespace Frostmourne_basics.Commands
 
             _s_to_check = symbol;
             
-            MyDB.Load_last_value_for_symbol(ref _bid, _s_to_check);
+            err = MyDB.Load_last_value_for_symbol(ref _bid, _s_to_check);
+            if (err.IsAnError)
+                return err;
 
             if (_bid.Id == 0)
                 return new Error(true, "Something appening during select query (Load_last_value_for_symbol)");
@@ -68,7 +70,9 @@ namespace Frostmourne_basics.Commands
 
             _s_to_check = symbol;
 
-            MyDB.Count_value_for_symbol(ref _ct, _s_to_check);
+            err = MyDB.Count_value_for_symbol(ref _ct, _s_to_check);
+            if (err.IsAnError)
+                return err;
 
             return new Error(false, "");
         }
@@ -98,7 +102,9 @@ namespace Frostmourne_basics.Commands
 
             _s_to_check = symbol;
 
-            MyDB.Count_value_by_day_for_symbol(_s_to_check, _from, _to, ref bids_ct);
+            err = MyDB.Count_value_by_day_for_symbol(_s_to_check, _from, _to, ref bids_ct);
+            if (err.IsAnError)
+                return err;
 
             return new Error(false, "");
         }
@@ -128,7 +134,9 @@ namespace Frostmourne_basics.Commands
 
             _s_to_check = symbol;
 
-            MyDB.Load_bids_values_for_symbol_between_to_date(ref _bids, _from, _to, _s_to_check);
+            err = MyDB.Load_bids_values_for_symbol_between_to_date(ref _bids, _from, _to, _s_to_check);
+            if (err.IsAnError)
+                return err;
 
             return new Error(false, "");
         }
@@ -183,9 +191,7 @@ namespace Frostmourne_basics.Commands
 
             err = Xtb.Retrieve_bids_of_symbol_from_xtb(Xtb_api_connector, _s_to_update, xAPI.Codes.PERIOD_CODE.PERIOD_M5, tNow, last_bid.Bid_at, ref xtb_bids);
             if (err.IsAnError)
-            {
                 return err;
-            }
 
             List<Bid> bids_to_insert_or_update = new List<Bid>();
 
@@ -219,8 +225,33 @@ namespace Frostmourne_basics.Commands
 
             Log.JumpLine();
             Log.Info("Update Database");
+            
+            err = MyDB.Load_bids_values_for_symbol_between_to_date(ref _bids, last_bid.Bid_at, tNow, _s_to_update);
+            if (err.IsAnError)
+                return err;
 
-            MyDB.Load_bids_values_for_symbol_between_to_date(ref _bids, last_bid.Bid_at, tNow, _s_to_update);
+            return new Error(false, "");
+        }
+
+        public static Error Update_db_stock_values_calculation(ref SyncAPIConnector Xtb_api_connector, ref Configuration configuration, ref Mysql MyDB, ref List<Bid> _bids)
+        {
+            Error err;
+            List<Bid> bids_to_update = new List<Bid>();
+
+            foreach (Bid b in _bids)
+            {
+                if (b.Id != 0)
+                {
+                    bids_to_update.Add(b);
+                }
+            }
+
+            if (bids_to_update.Count() == 0)
+                return new Error(false, "");
+            
+            err = MyDB.Update_bid_calculations(bids_to_update);
+            if (err.IsAnError)
+                return err;
 
             return new Error(false, "");
         }
