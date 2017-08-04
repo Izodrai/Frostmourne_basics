@@ -27,7 +27,7 @@ namespace Frostmourne_basics
             this.Last_bid = _last_bid;
 
             if (_calculations == "")
-                _calculations = "[]";
+                _calculations = "{}";
 
             this.Calculations = _calculations;
         }
@@ -40,7 +40,7 @@ namespace Frostmourne_basics
             this.Last_bid = _last_bid;
 
             if (_calculations == "")
-                _calculations = "[]";
+                _calculations = "{}";
 
             this.Calculations = _calculations;
         }

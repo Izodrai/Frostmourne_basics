@@ -167,7 +167,7 @@ namespace Frostmourne_basics.Dbs
                 cmd.Parameters.AddWithValue("@symbol_id", 1);
                 cmd.Parameters.AddWithValue("@last_bid", 1);
                 cmd.Parameters.AddWithValue("@bid_at", "One");
-                cmd.Parameters.AddWithValue("@calculations", "[]");
+                cmd.Parameters.AddWithValue("@calculations", "{}");
 
                 foreach (Bid b in _bids)
                 {
@@ -203,7 +203,7 @@ namespace Frostmourne_basics.Dbs
                 cmd.Parameters.Clear();
                 cmd.Prepare();
                 cmd.Parameters.AddWithValue("@id", 1);
-                cmd.Parameters.AddWithValue("@calculations", "[]");
+                cmd.Parameters.AddWithValue("@calculations", "{}");
 
                 foreach (Bid b in _bids)
                 {
