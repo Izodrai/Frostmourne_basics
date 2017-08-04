@@ -34,7 +34,8 @@ namespace Frostmourne_basics.Commands
                 return new Error(false, "This ID doesn't exist : " + _s_to_check.Id.ToString());
 
             _s_to_check = symbol;
-            
+            _s_to_check.Description = "";
+
             err = MyDB.Load_last_value_for_symbol(ref _bid, _s_to_check);
             if (err.IsAnError)
                 return err;
@@ -69,6 +70,7 @@ namespace Frostmourne_basics.Commands
                 return new Error(false, "This ID doesn't exist : " + _s_to_check.Id.ToString());
 
             _s_to_check = symbol;
+            _s_to_check.Description = "";
 
             err = MyDB.Count_value_for_symbol(ref _ct, _s_to_check);
             if (err.IsAnError)
@@ -101,6 +103,7 @@ namespace Frostmourne_basics.Commands
                 return new Error(false, "This ID doesn't exist : " + _s_to_check.Id.ToString());
 
             _s_to_check = symbol;
+            _s_to_check.Description = "";
 
             err = MyDB.Count_value_by_day_for_symbol(_s_to_check, _from, _to, ref bids_ct);
             if (err.IsAnError)
@@ -133,6 +136,7 @@ namespace Frostmourne_basics.Commands
                 return new Error(false, "This ID doesn't exist : " + _s_to_check.Id.ToString());
 
             _s_to_check = symbol;
+            _s_to_check.Description = "";
 
             err = MyDB.Load_bids_values_for_symbol_between_to_date(ref _bids, _from, _to, _s_to_check);
             if (err.IsAnError)
@@ -165,6 +169,8 @@ namespace Frostmourne_basics.Commands
 
             if (_s_to_update.Id == 0)
                 return new Error(true, "this symbols are not inactive or doesn't exist");
+
+            _s_to_update.Description = "";
 
             Bid last_bid = new Bid();
             MyDB.Load_last_value_for_symbol(ref last_bid, _s_to_update);

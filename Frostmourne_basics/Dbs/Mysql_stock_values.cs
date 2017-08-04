@@ -33,6 +33,7 @@ namespace Frostmourne_basics.Dbs
                     }
 
                 }
+                this.Close();
                 return new Error(false, "selected");
             }
             catch (MySql.Data.MySqlClient.MySqlException ex)
@@ -67,6 +68,7 @@ namespace Frostmourne_basics.Dbs
                     }
 
                 }
+                this.Close();
                 return new Error(false, "selected");
             }
             catch (MySql.Data.MySqlClient.MySqlException ex)
@@ -101,6 +103,7 @@ namespace Frostmourne_basics.Dbs
                     }
 
                 }
+                this.Close();
                 return new Error(false, "counted");
             }
             catch (MySql.Data.MySqlClient.MySqlException ex)
@@ -137,6 +140,7 @@ namespace Frostmourne_basics.Dbs
                         bids_ct.Add(new Bid_by_date(DateTime.Parse(Convert.ToString(values[1])), Convert.ToInt32(values[0])));
                     }
                 }
+                this.Close();
                 return new Error(false, "counted");
             }
             catch (MySql.Data.MySqlClient.MySqlException ex)

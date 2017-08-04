@@ -22,5 +22,17 @@ namespace Frostmourne_basics
         public string Mysql_pwd { get; set; }
         public string Mysql_database { get; set; }
         public string Mysql_port { get; set; }
+
+        public void Set_server(string type)
+        {
+            if (type == "prod")
+            {
+                this.Xtb_server = Servers.REAL;
+            }
+                else
+            {
+                this.Xtb_server = Servers.DEMO;
+            }
+        }
     }
 }
