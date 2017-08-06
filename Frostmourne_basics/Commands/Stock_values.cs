@@ -10,14 +10,14 @@ namespace Frostmourne_basics.Commands
 {
     public partial class Commands
     {
-        public static Error Get_from_db_last_insert_for_symbol(ref SyncAPIConnector Xtb_api_connector, ref Configuration configuration, ref Mysql MyDB, Symbol _s_to_check, ref Bid _bid)
+        public static Error Get_from_db_last_insert_for_symbol(ref Configuration configuration, ref Mysql MyDB, Symbol _s_to_check, ref Bid _bid)
         {
             List<Symbol> symbols_list = new List<Symbol>();
             Symbol symbol = new Symbol();
 
             Error err = new Error();
 
-            err = Load_all_symbols(ref Xtb_api_connector, ref configuration, ref MyDB, ref symbols_list);
+            err = Load_all_symbols(ref configuration, ref MyDB, ref symbols_list);
             if (err.IsAnError)
                 return err;
 
@@ -46,14 +46,14 @@ namespace Frostmourne_basics.Commands
             return new Error(false, "");
         }
 
-        public static Error Get_from_db_nb_insert_by_symbol(ref SyncAPIConnector Xtb_api_connector, ref Configuration configuration, ref Mysql MyDB, Symbol _s_to_check, ref int _ct)
+        public static Error Get_from_db_nb_insert_by_symbol(ref Configuration configuration, ref Mysql MyDB, Symbol _s_to_check, ref int _ct)
         {
             List<Symbol> symbols_list = new List<Symbol>();
             Symbol symbol = new Symbol();
 
             Error err = new Error();
 
-            err = Load_all_symbols(ref Xtb_api_connector, ref configuration, ref MyDB, ref symbols_list);
+            err = Load_all_symbols(ref configuration, ref MyDB, ref symbols_list);
             if (err.IsAnError)
                 return err;
 
@@ -79,14 +79,14 @@ namespace Frostmourne_basics.Commands
             return new Error(false, "");
         }
 
-        public static Error Get_from_db_nb_insert_by_day_between_two_date_for_symbol(ref SyncAPIConnector Xtb_api_connector, ref Configuration configuration, ref Mysql MyDB, Symbol _s_to_check, DateTime _from, DateTime _to, ref List<Bid_by_date> bids_ct)
+        public static Error Get_from_db_nb_insert_by_day_between_two_date_for_symbol(ref Configuration configuration, ref Mysql MyDB, Symbol _s_to_check, DateTime _from, DateTime _to, ref List<Bid_by_date> bids_ct)
         {
             List<Symbol> symbols_list = new List<Symbol>();
             Symbol symbol = new Symbol();
 
             Error err = new Error();
 
-            err = Load_all_symbols(ref Xtb_api_connector, ref configuration, ref MyDB, ref symbols_list);
+            err = Load_all_symbols(ref configuration, ref MyDB, ref symbols_list);
             if (err.IsAnError)
                 return err;
 
@@ -112,14 +112,14 @@ namespace Frostmourne_basics.Commands
             return new Error(false, "");
         }
 
-        public static Error Get_from_db_stock_values_between_two_date_for_symbol(ref SyncAPIConnector Xtb_api_connector, ref Configuration configuration, ref Mysql MyDB, Symbol _s_to_check, DateTime _from, DateTime _to, ref List<Bid> _bids)
+        public static Error Get_from_db_stock_values_between_two_date_for_symbol(ref Configuration configuration, ref Mysql MyDB, Symbol _s_to_check, DateTime _from, DateTime _to, ref List<Bid> _bids)
         {
             List<Symbol> symbols_list = new List<Symbol>();
             Symbol symbol = new Symbol();
 
             Error err = new Error();
 
-            err = Load_all_symbols(ref Xtb_api_connector, ref configuration, ref MyDB, ref symbols_list);
+            err = Load_all_symbols(ref configuration, ref MyDB, ref symbols_list);
             if (err.IsAnError)
                 return err;
 
@@ -239,7 +239,7 @@ namespace Frostmourne_basics.Commands
             return new Error(false, "");
         }
 
-        public static Error Update_db_stock_values_calculation(ref SyncAPIConnector Xtb_api_connector, ref Configuration configuration, ref Mysql MyDB, ref List<Bid> _bids)
+        public static Error Update_db_stock_values_calculation (ref Configuration configuration, ref Mysql MyDB, ref List<Bid> _bids)
         {
             Error err;
             List<Bid> bids_to_update = new List<Bid>();
