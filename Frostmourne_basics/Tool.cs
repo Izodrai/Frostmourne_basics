@@ -12,6 +12,25 @@ namespace Frostmourne_basics
 {
     public class Tool
     {
+        public static Error InitMyDb(ref Configuration configuration, ref Mysql MyDB)
+        {
+            Error err;
+            //////////////////////////////////////////////
+            //
+            // Tentative d'authentification au serveur Atiesh
+            //
+            //////////////////////////////////////////////
+
+            MyDB = new Mysql(configuration.Mysql_host, configuration.Mysql_port, configuration.Mysql_database, configuration.Mysql_login, configuration.Mysql_pwd);
+
+            err = MyDB.Connect();
+            if (err.IsAnError)
+            {
+                return err;
+            }
+            MyDB.Close();
+            return new Error(false, "Init success");
+        }
 
         public static Error InitAll(ref SyncAPIConnector Xtb_api_connector, ref Configuration configuration, ref Mysql MyDB)
         {
