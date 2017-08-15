@@ -174,9 +174,22 @@ namespace Frostmourne_basics.Commands
 
             Bid last_bid = new Bid();
             MyDB.Load_last_value_for_symbol(ref last_bid, _s_to_update);
+            
+            if (last_bid.Bid_at == null || last_bid.Bid_at == new DateTime())
+                last_bid.Bid_at = DateTime.Now.AddDays(-90);
+            
+            err = Tool.InitXtb(ref configuration, ref Xtb_api_connector);
+            if (err.IsAnError)
+                return err;
 
-            DateTime tNow = DateTime.UtcNow;
+            DateTime tNow = DateTime.Now;
 
+            Tool.Get_xtb_server_time(ref Xtb_api_connector, ref tNow);
+
+            Tool.CloseXtb(ref Xtb_api_connector);
+            if (err.IsAnError)
+                return err;
+            
             Log.Info("Time Now -> " + tNow.ToString("yyyy-MM-dd HH:mm:ss") + " ||| last data -> " + last_bid.Bid_at.ToString("yyyy-MM-dd HH:mm:ss") + " ||| retrieve data from -> " + last_bid.Bid_at.AddDays(-1).ToString("yyyy-MM-dd HH:mm:ss"));
             Log.JumpLine();
 
@@ -195,7 +208,15 @@ namespace Frostmourne_basics.Commands
                 return new Error(true, "Error during Load_bids_values_symbol : " + e.Message);
             }
 
+            err = Tool.InitXtb(ref configuration, ref Xtb_api_connector);
+            if (err.IsAnError)
+                return err;
+
             err = Xtb.Retrieve_bids_of_symbol_from_xtb(Xtb_api_connector, _s_to_update, xAPI.Codes.PERIOD_CODE.PERIOD_M5, tNow, last_bid.Bid_at, ref xtb_bids);
+            if (err.IsAnError)
+                return err;
+
+            Tool.CloseXtb(ref Xtb_api_connector);
             if (err.IsAnError)
                 return err;
 
@@ -208,6 +229,7 @@ namespace Frostmourne_basics.Commands
             foreach (Bid xtb_bid in xtb_bids)
             {
                 bool exist = false;
+                
                 foreach (Bid mysql_bid in mysql_bids)
                 {
                     if (xtb_bid.Symbol.Id != mysql_bid.Symbol.Id)
