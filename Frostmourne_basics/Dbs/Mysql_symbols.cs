@@ -43,10 +43,10 @@ namespace Frostmourne_basics.Dbs
             err = this.Connect();
             if (err.IsAnError)
                 return err;
-
+            
             try
             {
-                MySqlCommand cmd = new MySqlCommand("SELECT id, reference, description, state FROM " + table, this.Mysql_connector);
+                MySqlCommand cmd = new MySqlCommand("SELECT id, reference, description, state, lot_max_size, lot_min_size FROM " + table, this.Mysql_connector);
 
                 cmd.Parameters.Clear();
 
@@ -57,7 +57,7 @@ namespace Frostmourne_basics.Dbs
                         object[] values = new object[reader.FieldCount];
                         reader.GetValues(values);
 
-                        _sl.Add(new Symbol(Convert.ToInt32(values[0]), Convert.ToString(values[1]), Convert.ToString(values[2]), Convert.ToString(values[3])));
+                        _sl.Add(new Symbol(Convert.ToInt32(values[0]), Convert.ToString(values[1]), Convert.ToString(values[2]), Convert.ToString(values[3]), Convert.ToDouble(values[5]), Convert.ToDouble(values[4])));
                     }
                 }
                 this.Close();
@@ -80,7 +80,7 @@ namespace Frostmourne_basics.Dbs
 
             try
             {
-                MySqlCommand cmd = new MySqlCommand("SELECT id, reference, description, state FROM symbols WHERE id = @id", this.Mysql_connector);
+                MySqlCommand cmd = new MySqlCommand("SELECT id, reference, description, state, lot_max_size, lot_min_size FROM symbols WHERE id = @id", this.Mysql_connector);
 
                 cmd.Parameters.Clear();
                 cmd.Parameters.AddWithValue("id", _s.Id);
@@ -96,6 +96,8 @@ namespace Frostmourne_basics.Dbs
                         _s.Name = Convert.ToString(values[1]);
                         _s.Description = Convert.ToString(values[2]);
                         _s.State = Convert.ToString(values[3]);
+                        _s.Lot_max_size = Convert.ToDouble(values[4]);
+                        _s.Lot_min_size = Convert.ToDouble(values[5]);
                     }
                 }
                 this.Close();
