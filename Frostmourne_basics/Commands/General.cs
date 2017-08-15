@@ -14,18 +14,8 @@ namespace Frostmourne_basics.Commands
     {
         public static Error Get_xtb_server_time(ref SyncAPIConnector Xtb_api_connector, ref Configuration configuration, ref Mysql MyDB, ref DateTime _xtbServerTime)
         {
-            return Tool.Get_xtb_server_time(ref Xtb_api_connector, ref configuration, ref MyDB, ref _xtbServerTime);
+            return Tool.Get_xtb_server_time(ref Xtb_api_connector, ref _xtbServerTime);
         }
         
-        public static Error Cast_xtb_server_time_to_utc(ref SyncAPIConnector Xtb_api_connector, ref Configuration configuration, ref Mysql MyDB)
-        {
-            DateTime tServ = new DateTime();
-
-            Tool.Get_xtb_server_time(ref Xtb_api_connector, ref configuration, ref MyDB, ref tServ);
-            
-            Tool.Cast_xtb_server_time_to_utc(ref tServ);
-
-            return new Error(false, "");
-        }
     }
 }
