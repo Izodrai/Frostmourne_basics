@@ -12,6 +12,57 @@ namespace Frostmourne_basics
 {
     public class Tool
     {
+        public static Error InitXtb(ref Configuration configuration, ref SyncAPIConnector Xtb_api_connector)
+        {
+            Credentials Credentials;
+
+            //////////////////////////////////////////////
+            //
+            // Test de connexion aux serveurs xtb
+            //
+            //////////////////////////////////////////////
+
+            Xtb_api_connector = new SyncAPIConnector(configuration.Xtb_server);
+
+
+            //////////////////////////////////////////////
+            //
+            // Renseignement des Credentials 
+            //   
+            //////////////////////////////////////////////
+
+            Credentials = new Credentials(configuration.Xtb_login, configuration.Xtb_pwd);
+
+            //////////////////////////////////////////////
+            //
+            // Tentative d'authentification au serveur XTB
+            //
+            //////////////////////////////////////////////
+
+            try
+            {
+                APICommandFactory.ExecuteLoginCommand(Xtb_api_connector, Credentials);
+                return new Error(false, "Init success");
+            }
+            catch (Exception e)
+            {
+                return new Error(true, "Error during ExecuteLoginCommand : " + e.Message);
+            }
+        }
+
+        public static Error CloseXtb(ref SyncAPIConnector Xtb_api_connector)
+        {
+            try
+            {
+                APICommandFactory.ExecuteLogoutCommand(Xtb_api_connector);
+                return new Error(false, "Logout success");
+            }
+            catch (Exception e)
+            {
+                return new Error(true, "Error during ExecuteLogoutCommand : " + e.Message);
+            }
+        }
+
         public static Error InitMyDb(ref Configuration configuration, ref Mysql MyDB)
         {
             Error err;
@@ -67,7 +118,16 @@ namespace Frostmourne_basics
             {
                 return new Error(true, "Error during ExecuteLoginCommand : " + e.Message);
             }
-            
+
+            try
+            {
+                APICommandFactory.ExecuteLogoutCommand(Xtb_api_connector);
+            }
+            catch (Exception e)
+            {
+                return new Error(true, "Error during ExecuteLogoutCommand : " + e.Message);
+            }
+
             //////////////////////////////////////////////
             //
             // Tentative d'authentification au serveur Atiesh
@@ -89,7 +149,7 @@ namespace Frostmourne_basics
             return new Error(false, "Init success");
         }
 
-        public static Error Get_xtb_server_time(ref SyncAPIConnector Xtb_api_connector, ref Configuration configuration, ref Mysql MyDB, ref DateTime _xtbServerTime)
+        public static Error Get_xtb_server_time(ref SyncAPIConnector Xtb_api_connector, ref DateTime _xtbServerTime)
         {
             ServerTimeResponse serverTimeResponse = APICommandFactory.ExecuteServerTimeCommand(Xtb_api_connector, true);
 
@@ -97,7 +157,7 @@ namespace Frostmourne_basics
             
             return new Error(false, "");
         }
-
+    /*
         public static Error Cast_xtb_server_time_to_utc(ref DateTime _xtbServerTime)
         {
             DateTime tNow = DateTime.UtcNow;
@@ -108,7 +168,7 @@ namespace Frostmourne_basics
             
             return new Error(false, "");
         }
-
+    */
         public static long DateTimeToLongUnixTimeStamp(DateTime date)
         {
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
