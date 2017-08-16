@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Frostmourne_basics.Dbs;
+using System;
 using xAPI.Codes;
-using xAPI.Commands;
-using xAPI.Records;
-using xAPI.Responses;
 using xAPI.Sync;
 
 namespace Frostmourne_basics
@@ -14,112 +8,75 @@ namespace Frostmourne_basics
     public class Trade
     {
         public int Id { get; set; }
+        
+        public long Xtb_order_id_1 { get; set; }
+
+        public long Xtb_order_id_2 { get; set; }
+
 
         public Symbol Symbol { get; set; }
 
         public TRADE_OPERATION_CODE Cmd { get; set; }
 
+        public int Trade_type { get; set; }
+
+
         public double Volume { get; set; }
 
-        public double Price { get; set; }
-
         public double Stop_loss { get; set; }
+
+        public double Profit { get; set; }
+
+        public long Digits { get; set; }
+
+
+        public DateTime Opened_at { get; set; }
+
+        public DateTime Closed_at { get; set; }
 
         public double Opened_price { get; set; }
 
         public double Closed_price { get; set; }
 
-        public double Opened_reason { get; set; }
+        public string Opened_reason { get; set; }
 
-        public double Closed_reason { get; set; }
+        public string Closed_reason { get; set; }
+        
+        public Trade() { }
 
-        public double Opened_at { get; set; }
-
-        public double Closed_at { get; set; }
-
-
-
-        public Error Open_Trade(SyncAPIConnector _api_connector, ref Configuration configuration, Symbol _symbol, int _cmd, double _volume)
+        public Trade(int _id, long _xtb_order_id_1, long _xtb_order_id_2, Symbol _symbol, int _trade_type, 
+            double _volume, double _stop_loss, double _profit, DateTime _opened_at, DateTime _closed_at,
+            double _opened_price, double _closed_price, string _opened_reason, string _closed_reason)
         {
+            this.Id = _id;
+            this.Xtb_order_id_1 = _xtb_order_id_1;
+            this.Xtb_order_id_2 = _xtb_order_id_2;
+            this.Symbol = _symbol;
+            this.Trade_type = _trade_type;
+            this.Volume = _volume;
+            this.Stop_loss = _stop_loss;
+            this.Profit = _profit;
+            this.Opened_at = _opened_at;
+            this.Closed_at = _closed_at;
+            this.Opened_price = _opened_price;
+            this.Closed_price = _closed_price;
+            this.Opened_reason = _opened_reason;
+            this.Closed_reason = _closed_reason;
+        }
 
+        public Error Open_Trade(SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, ref Trade _trade)
+        {
             Error err;
-            err = Tool.InitXtb(ref configuration, ref _api_connector);
+
+            err = MyDB.New_trade(ref _trade);
             if (err.IsAnError)
                 return err;
-
-            SymbolResponse symbolResponse = APICommandFactory.ExecuteSymbolCommand(_api_connector, _symbol.Name);
-
-            this.Price = symbolResponse.Symbol.Ask.GetValueOrDefault();
             
-            //if (_cmd >= 0 && _cmd <= 7)
-            if (_cmd == 0 || _cmd == 1)
-            {
-                if (_cmd == 0)
-                {
-                    this.Cmd = TRADE_OPERATION_CODE.BUY;
-                } else
-                {
-                    this.Cmd = TRADE_OPERATION_CODE.SELL;
-                }
-            } else
-            {
-                return new Error(true, "Not a valid cmd ! -> " + _cmd.ToString());
-            }
-            
-            
-            if (_volume >= _symbol.Lot_min_size && _volume <= _symbol.Lot_max_size)
-            {
-                this.Volume = _volume;
-            }
-            else
-            {
-                return new Error(true, "Not a valid volume ! -> " + _cmd.ToString());
-            }
-
-            TradeTransInfoRecord ttOpenInfoRecord = new TradeTransInfoRecord(
-                this.Cmd,
-                TRADE_TRANSACTION_TYPE.ORDER_OPEN,
-                this.Price, this.Stop_loss, 0, _symbol.Name, this.Volume, 0, "", 0);
-
-            TradeTransactionResponse tradeTransactionResponse = APICommandFactory.ExecuteTradeTransactionCommand(_api_connector, ttOpenInfoRecord);
-
-            TradeTransactionStatusResponse ttsResponse = APICommandFactory.ExecuteTradeTransactionStatusCommand(_api_connector, tradeTransactionResponse.Order);
-            
-            TradesResponse tradesResponse = APICommandFactory.ExecuteTradesCommand(_api_connector, true);
-
-            TradeRecord tradeRecord = new TradeRecord();
-
-            foreach (TradeRecord tr in tradesResponse.TradeRecords)
-            {
-                if (tr.Order2 == ttsResponse.Order)
-                {
-                    tradeRecord = tr;
-                    break;
-                }
-            }
-
-            Log.Info("#######");
-            Log.JumpLine();
-            Log.JumpLine();
-
-            Log.Info("tradeRecord.Order -> " + tradeRecord.Order);
-            Log.Info("tradeRecord.Order2 -> " + tradeRecord.Order2);
-            Log.Info("tradeRecord.Digits -> " + tradeRecord.Digits);
-            Log.Info("tradeRecord.Open_price -> " + tradeRecord.Open_price);
-            Log.Info("tradeRecord.Open_time -> " + tradeRecord.Open_time);
-            Log.Info("tradeRecord.Closed -> " + tradeRecord.Closed);
-            Log.Info("tradeRecord.Cmd -> " + tradeRecord.Cmd);
-            Log.Info("tradeRecord.Profit -> " + tradeRecord.Profit);
-            Log.Info("tradeRecord.Storage -> " + tradeRecord.Storage);
-            Log.Info("tradeRecord.Volume -> " + tradeRecord.Volume);
-
-            Tool.CloseXtb(ref _api_connector);
-            if (err.IsAnError)
-                return err;
-
-
-
             return new Error(false, "Trade opened !");
         }
+
+
+
+
     }
 }

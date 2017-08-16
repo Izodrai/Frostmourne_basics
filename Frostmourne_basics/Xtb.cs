@@ -1,9 +1,7 @@
 ﻿using Frostmourne_basics.Dbs;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using xAPI.Codes;
 using xAPI.Commands;
 using xAPI.Records;
 using xAPI.Responses;
@@ -49,7 +47,7 @@ namespace Frostmourne_basics
             return new Error(false, "Data symbol retrieved !");
         }
 
-        public static Error Open_trade_xtb(SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, Symbol _symbol, int _cmd, double _volume)
+        public static Error Open_trade_xtb(SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, Symbol _symbol, ref Trade _trade)
         {
             Error err;
             List<Symbol> not_inactiv_symbols = new List<Symbol>();
@@ -73,15 +71,89 @@ namespace Frostmourne_basics
 
             if (_symbol.Id == 0)
                 return new Error(true, "this symbols are not inactive or doesn't exist");
-
-            Trade trade = new Trade();
-
-            err = trade.Open_Trade(_api_connector, ref configuration, _symbol, _cmd, _volume);
+            
+            err = Tool.InitXtb(ref configuration, ref _api_connector);
             if (err.IsAnError)
                 return err;
+
+            SymbolResponse symbolResponse = APICommandFactory.ExecuteSymbolCommand(_api_connector, _symbol.Name);
+
+            double price = symbolResponse.Symbol.Ask.GetValueOrDefault();
+
+            if (_trade.Trade_type == 0 || _trade.Trade_type == 1)
+            {
+                if (_trade.Trade_type == 0)
+                {
+                    _trade.Cmd = TRADE_OPERATION_CODE.BUY;
+                }
+                else
+                {
+                    _trade.Cmd = TRADE_OPERATION_CODE.SELL;
+                }
+            }
+            else
+            {
+                return new Error(true, "Not a valid trade type ! -> " + _trade.Trade_type.ToString());
+            }
+
+            if (_trade.Volume < _symbol.Lot_min_size || _trade.Volume > _symbol.Lot_max_size)
+                return new Error(true, "Not a valid volume ! -> " + _trade.Volume.ToString());
+
+            TradeTransInfoRecord ttOpenInfoRecord = new TradeTransInfoRecord(
+                _trade.Cmd,
+                TRADE_TRANSACTION_TYPE.ORDER_OPEN,
+                price, _trade.Stop_loss, 0, _symbol.Name, _trade.Volume, 0, "", 0);
+
+            TradeTransactionResponse tradeTransactionResponse = APICommandFactory.ExecuteTradeTransactionCommand(_api_connector, ttOpenInfoRecord);
+
+            TradeTransactionStatusResponse ttsResponse = APICommandFactory.ExecuteTradeTransactionStatusCommand(_api_connector, tradeTransactionResponse.Order);
+
+            if (ttsResponse.RequestStatus.Code != 3)
+                return new Error(true, "Error during TradeTransactionStatusCommand -> RequestStatus = " + ttsResponse.RequestStatus.Code + " | Message = " + ttsResponse.Message);
+
+            TradesResponse tradesResponse = APICommandFactory.ExecuteTradesCommand(_api_connector, true);
+
+            TradeRecord tradeRecord = new TradeRecord();
+
+            foreach (TradeRecord tr in tradesResponse.TradeRecords)
+            {
+                if (tr.Order2 == ttsResponse.Order)
+                {
+                    tradeRecord = tr;
+                    break;
+                }
+            }
+
+            _trade.Digits = Convert.ToInt64(tradeRecord.Digits);
+
+            double multiplier = Math.Pow(10, Convert.ToInt32(_trade.Digits));
+
+            _trade.Symbol = _symbol;
+            _trade.Xtb_order_id_1 = Convert.ToInt64(tradeRecord.Order);
+            _trade.Xtb_order_id_2 = Convert.ToInt64(tradeRecord.Order2);
+            _trade.Opened_price = Convert.ToDouble(tradeRecord.Open_price) * multiplier;
+            _trade.Volume = Convert.ToDouble(tradeRecord.Volume);
+            _trade.Profit = Convert.ToDouble(tradeRecord.Profit)*100;
+            _trade.Opened_at = Tool.LongUnixTimeStampToDateTime(tradeRecord.Open_time);
+
+            double limit_stop_loss = 15;
+
+            if (_trade.Trade_type == 0)
+                _trade.Stop_loss = _trade.Opened_price - limit_stop_loss;
+            else
+                _trade.Stop_loss = _trade.Opened_price + limit_stop_loss;
+
+            //TODO Setup Stop_loss
             
-            return new Error(false, "Trade opened !");
+            Tool.CloseXtb(ref _api_connector);
+            if (err.IsAnError)
+                return err;
+
+            err = _trade.Open_Trade(_api_connector, ref configuration, ref MyDB, ref _trade);
+            return err;
         }
+
+
 
 
     }
