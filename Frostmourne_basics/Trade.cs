@@ -44,9 +44,20 @@ namespace Frostmourne_basics
         
         public Trade() { }
 
+        public Trade(long _xtb_order_id_2)
+        {
+            this.Xtb_order_id_2 = _xtb_order_id_2;
+        }
+
+        public Trade(long _xtb_order_id_2, double _profit)
+        {
+            this.Xtb_order_id_2 = _xtb_order_id_2;
+            this.Profit = _profit;
+        }
+
         public Trade(int _id, long _xtb_order_id_1, long _xtb_order_id_2, Symbol _symbol, int _trade_type, 
             double _volume, double _stop_loss, double _profit, DateTime _opened_at, DateTime _closed_at,
-            double _opened_price, double _closed_price, string _opened_reason, string _closed_reason)
+            double _opened_price, double _closed_price, string _opened_reason, string _closed_reason, int _digits)
         {
             this.Id = _id;
             this.Xtb_order_id_1 = _xtb_order_id_1;
@@ -62,6 +73,7 @@ namespace Frostmourne_basics
             this.Closed_price = _closed_price;
             this.Opened_reason = _opened_reason;
             this.Closed_reason = _closed_reason;
+            this.Digits = _digits;
         }
 
         public Error Open_Trade(SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, ref Trade _trade)
@@ -74,9 +86,5 @@ namespace Frostmourne_basics
             
             return new Error(false, "Trade opened !");
         }
-
-
-
-
     }
 }

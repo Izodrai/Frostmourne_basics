@@ -11,7 +11,7 @@ namespace Frostmourne_basics
 {
     public class Xtb
     {
-        public static Error Retrieve_bids_of_symbol_from_xtb(SyncAPIConnector _api_connector, Symbol _symbol, xAPI.Codes.PERIOD_CODE _period, DateTime tNow, DateTime tFrom, ref List<Bid> bids)
+        public static Error Retrieve_bids_of_symbol_from_xtb(ref SyncAPIConnector _api_connector, Symbol _symbol, xAPI.Codes.PERIOD_CODE _period, DateTime tNow, DateTime tFrom, ref List<Bid> bids)
         {
             Log.Info("Retrieve XTB data for -> " + _symbol.Name);
             
@@ -47,7 +47,7 @@ namespace Frostmourne_basics
             return new Error(false, "Data symbol retrieved !");
         }
 
-        public static Error Open_trade_xtb(SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, Symbol _symbol, ref Trade _trade)
+        public static Error Open_trade_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, Symbol _symbol, ref Trade _trade)
         {
             Error err;
             List<Symbol> not_inactiv_symbols = new List<Symbol>();
@@ -83,13 +83,9 @@ namespace Frostmourne_basics
             if (_trade.Trade_type == 0 || _trade.Trade_type == 1)
             {
                 if (_trade.Trade_type == 0)
-                {
                     _trade.Cmd = TRADE_OPERATION_CODE.BUY;
-                }
                 else
-                {
                     _trade.Cmd = TRADE_OPERATION_CODE.SELL;
-                }
             }
             else
             {
@@ -102,7 +98,7 @@ namespace Frostmourne_basics
             TradeTransInfoRecord ttOpenInfoRecord = new TradeTransInfoRecord(
                 _trade.Cmd,
                 TRADE_TRANSACTION_TYPE.ORDER_OPEN,
-                price, _trade.Stop_loss, 0, _symbol.Name, _trade.Volume, 0, "", 0);
+                price, _trade.Stop_loss, 0, _symbol.Name, _trade.Volume, 0, _trade.Opened_reason, 0);
 
             TradeTransactionResponse tradeTransactionResponse = APICommandFactory.ExecuteTradeTransactionCommand(_api_connector, ttOpenInfoRecord);
 
@@ -133,7 +129,7 @@ namespace Frostmourne_basics
             _trade.Xtb_order_id_2 = Convert.ToInt64(tradeRecord.Order2);
             _trade.Opened_price = Convert.ToDouble(tradeRecord.Open_price) * multiplier;
             _trade.Volume = Convert.ToDouble(tradeRecord.Volume);
-            _trade.Profit = Convert.ToDouble(tradeRecord.Profit)*100;
+            _trade.Profit = Convert.ToDouble(tradeRecord.Profit);
             _trade.Opened_at = Tool.LongUnixTimeStampToDateTime(tradeRecord.Open_time);
 
             double limit_stop_loss = 15;
@@ -153,8 +149,90 @@ namespace Frostmourne_basics
             return err;
         }
 
+        public static Error Get_open_trades_from_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, ref List<Trade> _trades)
+        {
+            Error err;
+            err = Tool.InitXtb(ref configuration, ref _api_connector);
+            if (err.IsAnError)
+                return err;
 
+            TradesResponse tradesResponse = APICommandFactory.ExecuteTradesCommand(_api_connector, true);
+            
+            foreach (TradeRecord tr in tradesResponse.TradeRecords)
+                _trades.Add(new Trade(Convert.ToInt64(tr.Order2), Convert.ToDouble(tr.Profit)));
+            
+            err = MyDB.Get_trades_by_order_id(ref _trades, true);
+            if (err.IsAnError)
+            {
+                MyDB.Close();
+                return err;
+            }
+            MyDB.Close();
 
+            Tool.CloseXtb(ref _api_connector);
+            if (err.IsAnError)
+                return err;
 
+            return new Error(false, "");
+        }
+
+        public static Error Close_trade_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, ref Trade _trade_to_close)
+        {
+            Error err;
+
+            err = Tool.InitXtb(ref configuration, ref _api_connector);
+            if (err.IsAnError)
+                return err;
+            
+            if (_trade_to_close.Trade_type == 0)
+                _trade_to_close.Cmd = TRADE_OPERATION_CODE.BUY;
+            else
+                _trade_to_close.Cmd = TRADE_OPERATION_CODE.SELL;
+
+            SymbolResponse symbolResponse = APICommandFactory.ExecuteSymbolCommand(_api_connector, _trade_to_close.Symbol.Name);
+            
+            TradeTransInfoRecord ttCloseInfoRecord = new TradeTransInfoRecord(
+                _trade_to_close.Cmd,
+                TRADE_TRANSACTION_TYPE.ORDER_CLOSE,
+                symbolResponse.Symbol.Ask.GetValueOrDefault(), _trade_to_close.Stop_loss, 0.0,
+            _trade_to_close.Symbol.Name, _trade_to_close.Volume, _trade_to_close.Xtb_order_id_1, _trade_to_close.Closed_reason, 0);
+
+            TradeTransactionResponse closeTradeTransactionResponse = APICommandFactory.ExecuteTradeTransactionCommand(_api_connector, ttCloseInfoRecord, true);
+
+            TradeTransactionStatusResponse ttsCloseResponse = APICommandFactory.ExecuteTradeTransactionStatusCommand(_api_connector, closeTradeTransactionResponse.Order);
+
+            if (ttsCloseResponse.RequestStatus.Code != 3)
+                return new Error(true, "Error during TradeTransactionStatusCommand -> RequestStatus = " + ttsCloseResponse.RequestStatus.Code + " | Message = " + ttsCloseResponse.Message);
+            
+            TradesHistoryResponse resp = APICommandFactory.ExecuteTradesHistoryCommand(_api_connector, 0, 0);
+
+            TradeRecord tradeClosed = new TradeRecord();
+
+            foreach (TradeRecord tr in resp.TradeRecords)
+            {
+                if (tr.Position == _trade_to_close.Xtb_order_id_1)
+                {
+                    tradeClosed = tr;
+                    break;
+                }
+            }
+
+            double multiplier = Math.Pow(10, Convert.ToInt32(_trade_to_close.Digits));
+
+            Log.Info("Digits : " + _trade_to_close.Digits);
+            Log.Info("multiplier : " + multiplier);
+            Log.Info("tradeClosed.Close_price : " + tradeClosed.Close_price);
+            Log.Info((Convert.ToDouble(tradeClosed.Close_price) * multiplier).ToString());
+
+            _trade_to_close.Closed_price = Convert.ToDouble(tradeClosed.Close_price) * multiplier;
+            _trade_to_close.Closed_at = Tool.LongUnixTimeStampToDateTime(tradeClosed.Close_time);
+            
+            // TODO Update trade en base
+
+            Tool.CloseXtb(ref _api_connector);
+            if (err.IsAnError)
+                return err;
+            return new Error(false, "trade closed");
+        }
     }
 }

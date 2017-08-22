@@ -212,7 +212,7 @@ namespace Frostmourne_basics.Commands
             if (err.IsAnError)
                 return err;
 
-            err = Xtb.Retrieve_bids_of_symbol_from_xtb(Xtb_api_connector, _s_to_update, xAPI.Codes.PERIOD_CODE.PERIOD_M5, tNow, last_bid.Bid_at, ref xtb_bids);
+            err = Xtb.Retrieve_bids_of_symbol_from_xtb(ref Xtb_api_connector, _s_to_update, xAPI.Codes.PERIOD_CODE.PERIOD_M5, tNow, last_bid.Bid_at, ref xtb_bids);
             if (err.IsAnError)
                 return err;
 
