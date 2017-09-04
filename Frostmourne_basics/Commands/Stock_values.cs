@@ -23,7 +23,7 @@ namespace Frostmourne_basics.Commands
 
             foreach (Symbol s in symbols_list)
             {
-                if (s.Id == _s_to_check.Id)
+                if (s.Name == _s_to_check.Name || s.Id == _s_to_check.Id)
                 {
                     symbol = s;
                     break;
@@ -59,7 +59,7 @@ namespace Frostmourne_basics.Commands
 
             foreach (Symbol s in symbols_list)
             {
-                if (s.Id == _s_to_check.Id)
+                if (s.Name == _s_to_check.Name || s.Id == _s_to_check.Id)
                 {
                     symbol = s;
                     break;
@@ -92,7 +92,7 @@ namespace Frostmourne_basics.Commands
 
             foreach (Symbol s in symbols_list)
             {
-                if (s.Id == _s_to_check.Id)
+                if (s.Name == _s_to_check.Name || s.Id == _s_to_check.Id)
                 {
                     symbol = s;
                     break;
@@ -125,7 +125,7 @@ namespace Frostmourne_basics.Commands
 
             foreach (Symbol s in symbols_list)
             {
-                if (s.Id == _s_to_check.Id)
+                if (s.Name == _s_to_check.Name || s.Id == _s_to_check.Id)
                 {
                     symbol = s;
                     break;
@@ -160,7 +160,7 @@ namespace Frostmourne_basics.Commands
 
             foreach (Symbol not_inactiv_s in not_inactiv_symbols)
             {
-                if (_s_to_update.Name == not_inactiv_s.Name)
+                if (_s_to_update.Name == not_inactiv_s.Name || _s_to_update.Id == not_inactiv_s.Id)
                 {
                     _s_to_update = not_inactiv_s;
                     break;
