@@ -88,7 +88,90 @@ namespace Frostmourne_basics.Dbs
                 return new Error(true, ex.Message);
             }
         }
-        
+
+        public Error Get_trade_by_db_id(ref Trade _trade)
+        {
+            Error err;
+
+            err = this.Connect();
+            if (err.IsAnError)
+                return err;
+
+            try
+            {
+                MySqlCommand cmd = new MySqlCommand("SELECT id, symbol_id, trade_type_id, xtb_order_id_1, xtb_order_id_2, opened_at, closed_at, opened_value, closed_value, opened_reason, closed_reason, stop_loss_value, volume, profit, digits FROM trades WHERE id = @id ", this.Mysql_connector);
+
+                cmd.Parameters.Clear();
+                cmd.Parameters.AddWithValue("@id", _trade.Id);
+
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        object[] values = new object[reader.FieldCount];
+                        reader.GetValues(values);
+
+                        int id = Convert.ToInt32(values[0]);
+
+                        Symbol s = new Symbol();
+                        s.Id = Convert.ToInt32(values[1]);
+                        err = Load_symbol_state(ref s);
+                        if (err.IsAnError)
+                        {
+                            this.Close();
+                            return err;
+                        }
+
+                        int trade_type = Convert.ToInt32(values[2]);
+                        long xtb_order_id_1 = Convert.ToInt64(values[3]);
+                        long xtb_order_id_2 = Convert.ToInt64(values[4]);
+                        double volume = Convert.ToDouble(values[12]);
+                        double stop_loss = Convert.ToDouble(values[11]);
+                        double profit = Convert.ToDouble(values[13]);
+
+                        DateTime opened_at = DateTime.Parse(Convert.ToString(values[5]));
+
+                        DateTime closed_at;
+                        try
+                        {
+                            closed_at = DateTime.Parse(Convert.ToString(values[6]));
+                        }
+                        catch
+                        {
+                            closed_at = new DateTime();
+                        }
+
+                        double opened_price = Convert.ToDouble(values[7]);
+
+                        double closed_price;
+                        try
+                        {
+                            closed_price = Convert.ToDouble(values[8]);
+                        }
+                        catch
+                        {
+                            closed_price = 0.0;
+                        }
+
+                        string opened_reason = Convert.ToString(values[9]);
+                        string closed_reason = Convert.ToString(values[10]);
+                        int digits = Convert.ToInt32(values[14]);
+
+                        _trade = new Trade(id, xtb_order_id_1, xtb_order_id_2, s, trade_type, volume, stop_loss, profit, opened_at, closed_at, opened_price, closed_price, opened_reason, closed_reason, digits);
+                    }
+                }
+
+                this.Close();
+
+                return new Error(false, "selected");
+            }
+            catch (MySql.Data.MySqlClient.MySqlException ex)
+            {
+                this.Close();
+                return new Error(true, ex.Message);
+            }
+        }
+
         public Error Get_trades_by_order_id(ref List<Trade> _trades, bool _keep_xtb_profit)
         {
             Error err;
@@ -263,7 +346,7 @@ namespace Frostmourne_basics.Dbs
             }
         }
         
-        /*
+        
         public Error Close_trade(Trade _trade)
         {
             Error err;
@@ -274,29 +357,32 @@ namespace Frostmourne_basics.Dbs
 
             try
             {
-                MySqlCommand cmd = new MySqlCommand("UPDATE stock_values SET `calculations` = @calculations WHERE id = @id", this.Mysql_connector);
+                MySqlCommand cmd = new MySqlCommand("UPDATE trades SET `closed_at` = @closed_at, `closed_value` = @closed_value, `closed_reason` = @closed_reason, `profit` = @profit WHERE id = @id", this.Mysql_connector);
 
                 cmd.Parameters.Clear();
                 cmd.Prepare();
                 cmd.Parameters.AddWithValue("@id", 1);
-                cmd.Parameters.AddWithValue("@calculations", "{}");
-
-                foreach (Bid b in _bids)
-                {
-                    cmd.Parameters["@id"].Value = b.Id;
-                    cmd.Parameters["@calculations"].Value = b.Calculations;
-                    cmd.ExecuteNonQuery();
-                }
+                cmd.Parameters.AddWithValue("@closed_at", "");
+                cmd.Parameters.AddWithValue("@closed_value", 1);
+                cmd.Parameters.AddWithValue("@closed_reason", "");
+                cmd.Parameters.AddWithValue("@profit", "0.0");
+                
+                cmd.Parameters["@id"].Value = _trade.Id;
+                cmd.Parameters["@closed_at"].Value = _trade.Closed_at.ToString("yyyy-MM-dd HH:mm:ss");
+                cmd.Parameters["@closed_value"].Value = _trade.Closed_price;
+                cmd.Parameters["@closed_reason"].Value = _trade.Closed_reason;
+                cmd.Parameters["@profit"].Value = _trade.Profit.ToString().Replace(",", ".");
+                cmd.ExecuteNonQuery();
 
                 this.Close();
-                return new Error(false, "bids calculations updated");
+                return new Error(false, "trade closed updated");
             }
             catch (MySql.Data.MySqlClient.MySqlException ex)
             {
                 this.Close();
                 return new Error(true, ex.Message);
             }
-        }*/
+        }
 
     }
 }

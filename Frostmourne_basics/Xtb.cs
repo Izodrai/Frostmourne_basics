@@ -62,7 +62,7 @@ namespace Frostmourne_basics
 
             foreach (Symbol not_inactiv_s in not_inactiv_symbols)
             {
-                if (_symbol.Name == not_inactiv_s.Name)
+                if (_symbol.Name == not_inactiv_s.Name || _symbol.Id == not_inactiv_s.Id)
                 {
                     _symbol = not_inactiv_s;
                     break;
@@ -131,13 +131,11 @@ namespace Frostmourne_basics
             _trade.Volume = Convert.ToDouble(tradeRecord.Volume);
             _trade.Profit = Convert.ToDouble(tradeRecord.Profit);
             _trade.Opened_at = Tool.LongUnixTimeStampToDateTime(tradeRecord.Open_time);
-
-            double limit_stop_loss = 15;
-
+            
             if (_trade.Trade_type == 0)
-                _trade.Stop_loss = _trade.Opened_price - limit_stop_loss;
+                _trade.Stop_loss = _trade.Opened_price - configuration.Stop_loss;
             else
-                _trade.Stop_loss = _trade.Opened_price + limit_stop_loss;
+                _trade.Stop_loss = _trade.Opened_price + configuration.Stop_loss;
 
             //TODO Setup Stop_loss
             
@@ -179,18 +177,44 @@ namespace Frostmourne_basics
         public static Error Close_trade_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, ref Trade _trade_to_close)
         {
             Error err;
-
-            err = Tool.InitXtb(ref configuration, ref _api_connector);
+            List<Trade> opened_trades = new List<Trade>();
+            
+            err = Get_open_trades_from_xtb(ref _api_connector, ref configuration, ref MyDB, ref opened_trades);
             if (err.IsAnError)
                 return err;
-            
+
+            Trade trade_to_close = new Trade();
+
+            foreach (Trade t in opened_trades)
+            {
+                if (t.Id == _trade_to_close.Id)
+                {
+                    trade_to_close = t;
+                    break;
+                }
+            }
+
+            if (trade_to_close.Id == 0)
+                return (new Error(true, "This ID doesn't exist"));
+
+            err = MyDB.Get_trade_by_db_id(ref trade_to_close);
+            if (err.IsAnError)
+                return err;
+
+            trade_to_close.Closed_reason = _trade_to_close.Closed_reason;
+            _trade_to_close = trade_to_close;
+
             if (_trade_to_close.Trade_type == 0)
                 _trade_to_close.Cmd = TRADE_OPERATION_CODE.BUY;
             else
                 _trade_to_close.Cmd = TRADE_OPERATION_CODE.SELL;
+            
+            err = Tool.InitXtb(ref configuration, ref _api_connector);
+            if (err.IsAnError)
+                return err;
 
             SymbolResponse symbolResponse = APICommandFactory.ExecuteSymbolCommand(_api_connector, _trade_to_close.Symbol.Name);
-            
+          
             TradeTransInfoRecord ttCloseInfoRecord = new TradeTransInfoRecord(
                 _trade_to_close.Cmd,
                 TRADE_TRANSACTION_TYPE.ORDER_CLOSE,
@@ -218,16 +242,17 @@ namespace Frostmourne_basics
             }
 
             double multiplier = Math.Pow(10, Convert.ToInt32(_trade_to_close.Digits));
-
-            Log.Info("Digits : " + _trade_to_close.Digits);
-            Log.Info("multiplier : " + multiplier);
-            Log.Info("tradeClosed.Close_price : " + tradeClosed.Close_price);
-            Log.Info((Convert.ToDouble(tradeClosed.Close_price) * multiplier).ToString());
-
+            
             _trade_to_close.Closed_price = Convert.ToDouble(tradeClosed.Close_price) * multiplier;
             _trade_to_close.Closed_at = Tool.LongUnixTimeStampToDateTime(tradeClosed.Close_time);
             
-            // TODO Update trade en base
+            err = MyDB.Close_trade(_trade_to_close);
+            if (err.IsAnError)
+            {
+                MyDB.Close();
+                return err;
+            }
+            MyDB.Close();
 
             Tool.CloseXtb(ref _api_connector);
             if (err.IsAnError)

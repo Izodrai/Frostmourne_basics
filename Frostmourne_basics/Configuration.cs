@@ -23,6 +23,8 @@ namespace Frostmourne_basics
         public string Mysql_database { get; set; }
         public string Mysql_port { get; set; }
 
+        public double Stop_loss { get; set; }
+
         public void Set_server(string type)
         {
             if (type == "prod")
