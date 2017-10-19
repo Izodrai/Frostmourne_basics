@@ -63,9 +63,9 @@ namespace Frostmourne_basics
             }
         }
 
-        public static Error InitMyDb(ref Configuration configuration, ref Mysql MyDB)
+        public static /*Error*/void InitMyDb(ref Configuration configuration, ref Mysql MyDB)
         {
-            Error err;
+            //Error err;
             //////////////////////////////////////////////
             //
             // Tentative d'authentification au serveur Atiesh
@@ -73,21 +73,22 @@ namespace Frostmourne_basics
             //////////////////////////////////////////////
 
             MyDB = new Mysql(configuration.Mysql_host, configuration.Mysql_port, configuration.Mysql_database, configuration.Mysql_login, configuration.Mysql_pwd);
-
+            /*
             err = MyDB.Connect();
             if (err.IsAnError)
             {
                 return err;
             }
             MyDB.Close();
-            return new Error(false, "Init success");
+            
+            return new Error(false, "Init success");*/
         }
 
         public static Error InitAll(ref SyncAPIConnector Xtb_api_connector, ref Configuration configuration, ref Mysql MyDB)
         {
             Error err;
             Credentials Credentials;
-            
+
             //////////////////////////////////////////////
             //
             // Test de connexion aux serveurs xtb
@@ -110,11 +111,12 @@ namespace Frostmourne_basics
             // Tentative d'authentification au serveur XTB
             //
             //////////////////////////////////////////////
-            
+
             try
             {
                 APICommandFactory.ExecuteLoginCommand(Xtb_api_connector, Credentials);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 return new Error(true, "Error during ExecuteLoginCommand : " + e.Message);
             }
@@ -142,7 +144,7 @@ namespace Frostmourne_basics
                 return err;
             }
             MyDB.Close();
-            
+
             Log.GreenInfo("XTB and DB server connected");
             Log.JumpLine();
 

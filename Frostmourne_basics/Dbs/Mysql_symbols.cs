@@ -6,6 +6,7 @@ namespace Frostmourne_basics.Dbs
 {
     public partial class Mysql
     {
+        
         public Error Load_not_inactive_symbols(ref List<Symbol> _sl)
         {
             return Load_symbols_state(ref _sl, "v_symbols_not_inactive");
@@ -57,7 +58,7 @@ namespace Frostmourne_basics.Dbs
                         object[] values = new object[reader.FieldCount];
                         reader.GetValues(values);
 
-                        _sl.Add(new Symbol(Convert.ToInt32(values[0]), Convert.ToString(values[1]), Convert.ToString(values[2]), Convert.ToString(values[3]), Convert.ToDouble(values[5]), Convert.ToDouble(values[4])));
+                        _sl.Add(new Symbol(Convert.ToInt32(values[0]), Convert.ToString(values[1])));
                     }
                 }
                 this.Close();
@@ -69,7 +70,7 @@ namespace Frostmourne_basics.Dbs
                 return new Error(true, ex.Message);
             }
         }
-
+        
         public Error Load_symbol_state(ref Symbol _s)
         {
             Error err;
@@ -80,7 +81,7 @@ namespace Frostmourne_basics.Dbs
 
             try
             {
-                MySqlCommand cmd = new MySqlCommand("SELECT id, reference, description, state, lot_max_size, lot_min_size FROM symbols WHERE id = @id", this.Mysql_connector);
+                MySqlCommand cmd = new MySqlCommand("SELECT id, reference FROM symbols WHERE id = @id", this.Mysql_connector);
 
                 cmd.Parameters.Clear();
                 cmd.Parameters.AddWithValue("id", _s.Id);
@@ -94,46 +95,10 @@ namespace Frostmourne_basics.Dbs
 
                         _s.Id = Convert.ToInt32(values[0]);
                         _s.Name = Convert.ToString(values[1]);
-                        _s.Description = Convert.ToString(values[2]);
-                        _s.State = Convert.ToString(values[3]);
-                        _s.Lot_max_size = Convert.ToDouble(values[4]);
-                        _s.Lot_min_size = Convert.ToDouble(values[5]);
                     }
                 }
                 this.Close();
                 return new Error(false, "Symbol loaded");
-            }
-            catch (MySql.Data.MySqlClient.MySqlException ex)
-            {
-                this.Close();
-                return new Error(true, ex.Message);
-            }
-        }
-        
-        public Error Update_symbol_status(Symbol _s_to_update)
-        {
-            Error err;
-
-            err = this.Connect();
-            if (err.IsAnError)
-                return err;
-            
-            try
-            {
-                MySqlCommand cmd = new MySqlCommand("UPDATE symbols SET `state`= @state WHERE `id` = @id", this.Mysql_connector);
-
-                cmd.Parameters.Clear();
-                cmd.Prepare();
-                cmd.Parameters.AddWithValue("@id", 1);
-                cmd.Parameters.AddWithValue("@state", "inactive");
-                
-                cmd.Parameters["@id"].Value = _s_to_update.Id;
-                cmd.Parameters["@state"].Value = _s_to_update.State;
-                
-                cmd.ExecuteNonQuery();
-
-                this.Close();
-                return new Error(false, "symbol status updated");
             }
             catch (MySql.Data.MySqlClient.MySqlException ex)
             {

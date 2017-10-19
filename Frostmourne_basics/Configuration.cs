@@ -17,6 +17,8 @@ namespace Frostmourne_basics
         public string Xtb_pwd { get; set; }
         public Server Xtb_server { get; set; }
 
+        public string Api_token { get; set; }
+
         public string Mysql_host { get; set; }
         public string Mysql_login { get; set; }
         public string Mysql_pwd { get; set; }

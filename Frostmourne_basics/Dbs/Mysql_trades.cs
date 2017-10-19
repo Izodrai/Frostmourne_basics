@@ -180,14 +180,6 @@ namespace Frostmourne_basics.Dbs
 
             err = this.Load_all_symbols_status(ref symbols);
             if (err.IsAnError)
-            {
-                this.Close();
-                return err;
-            }
-            this.Close();
-            
-            err = this.Connect();
-            if (err.IsAnError)
                 return err;
 
             List<string> args = new List<string>();
@@ -200,6 +192,10 @@ namespace Frostmourne_basics.Dbs
                 args.Add(t.Xtb_order_id_2.ToString());
             }
             string req = "("+String.Join(",", args.ToArray())+")";
+            
+            err = this.Connect();
+            if (err.IsAnError)
+                return err;
 
             try
             {

@@ -17,7 +17,7 @@ namespace Frostmourne_basics.Dbs
         protected string Port { get; set; }
 
         public Mysql() { }
-
+        
         public Mysql(string _server, string _port, string _database, string _login, string _password)
         {
             this.Server = _server;

@@ -8,17 +8,56 @@ namespace Frostmourne_basics.Commands
     {
         public static Error Open_trade_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, Symbol _symbol, ref Trade _trade)
         {
-            return Xtb.Open_trade_xtb(ref _api_connector, ref configuration, ref MyDB, _symbol, ref _trade);
+            Error err;
+
+            err = Tool.InitXtb(ref configuration, ref _api_connector);
+            if (err.IsAnError)
+                return err;
+
+            Tool.InitMyDb(ref configuration, ref MyDB);
+
+            err = Xtb.Open_trade_xtb(ref _api_connector, ref configuration, ref MyDB, _symbol, ref _trade);
+            if (err.IsAnError)
+                return err;
+
+            err = Tool.CloseXtb(ref _api_connector);
+            return err;
         }
 
         public static Error Get_open_trades_from_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, ref List<Trade> _trades)
         {
-            return Xtb.Get_open_trades_from_xtb(ref _api_connector, ref configuration, ref MyDB, ref _trades);
+            Error err;
+
+            err = Tool.InitXtb(ref configuration, ref _api_connector);
+            if (err.IsAnError)
+                return err;
+
+            Tool.InitMyDb(ref configuration, ref MyDB);
+
+            err = Xtb.Get_open_trades_from_xtb(ref _api_connector, ref configuration, ref MyDB, ref _trades);
+            if (err.IsAnError)
+                return err;
+
+            err = Tool.CloseXtb(ref _api_connector);
+            return err;
         }
 
         public static Error Close_trade_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, ref Trade _trade)
         {
-            return Xtb.Close_trade_xtb(ref _api_connector, ref configuration, ref MyDB, ref _trade);
+            Error err;
+
+            err = Tool.InitXtb(ref configuration, ref _api_connector);
+            if (err.IsAnError)
+                return err;
+
+            Tool.InitMyDb(ref configuration, ref MyDB);
+
+            err = Xtb.Close_trade_xtb(ref _api_connector, ref configuration, ref MyDB, ref _trade);
+            if (err.IsAnError)
+                return err;
+
+            err = Tool.CloseXtb(ref _api_connector);
+            return err;
         }
     }
 }
