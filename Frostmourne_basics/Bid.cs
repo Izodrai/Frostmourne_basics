@@ -10,13 +10,13 @@ namespace Frostmourne_basics
     {
         public string Symbol { get; set; }
 
-        public DateTime Bid_at { get; set; }
+        public Int64 Bid_at { get; set; }
 
         public double Last_bid { get; set; }
 
         public Bid() { }
 
-        public Bid(string _symbol, DateTime _bid_at, double _last_bid)
+        public Bid(string _symbol, Int64 _bid_at, double _last_bid)
         {
             this.Symbol = _symbol;
             this.Bid_at = _bid_at;

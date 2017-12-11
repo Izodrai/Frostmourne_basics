@@ -1,5 +1,4 @@
-﻿using Frostmourne_basics.Dbs;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using xAPI.Codes;
 using xAPI.Commands;
@@ -11,22 +10,16 @@ namespace Frostmourne_basics
 {
     public class Xtb
     {
-        public static Error Retrieve_bids_of_symbol_from_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, string _symbol, xAPI.Codes.PERIOD_CODE _period, DateTime tNow, DateTime tFrom, ref List<Bid> bids)
+        public static Error Retrieve_bids_of_symbol_from_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, string _symbol, xAPI.Codes.PERIOD_CODE _period, Int64 tFrom, ref List<Bid> bids)
         {
 
             Log.Info("Retrieve XTB data for -> " + _symbol);
             
-            ////////////////
-            // Récupération des données de xtb sur la période
-            ////////////////
-
-            long? timeTStart = Tool.DateTimeToLongUnixTimeStamp(tFrom);
-
             ChartLastResponse resp;
             
             try
             {
-                resp = APICommandFactory.ExecuteChartLastCommand(_api_connector, _symbol, _period, timeTStart);
+                resp = APICommandFactory.ExecuteChartLastCommand(_api_connector, _symbol, _period, tFrom*1000);
             }
             catch (Exception e)
             {
@@ -41,12 +34,12 @@ namespace Frostmourne_basics
                 return new Error(true, "No data to retrieve in this range");
 
             foreach (RateInfoRecord v in infos)
-                bids.Add(new Bid(_symbol, Tool.LongUnixTimeStampToDateTime(v.Ctm), Convert.ToDouble(v.Open) + Convert.ToDouble(v.Close)));
+                bids.Add(new Bid(_symbol, Convert.ToInt64(v.Ctm/1000), Convert.ToDouble(v.Open) + Convert.ToDouble(v.Close)));
 
             return new Error(false, "Data symbol retrieved !");
         }
-
-        public static Error Open_trade_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, Symbol _symbol, ref Trade _trade)
+        /*
+        public static Error Open_trade_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, Symbol _symbol, ref Trade _trade)
         {
             Error err;
             List<Symbol> not_inactiv_symbols = new List<Symbol>();
@@ -81,15 +74,7 @@ namespace Frostmourne_basics
             else
             {
                 return new Error(true, "Not a valid trade type ! -> " + _trade.Trade_type.ToString());
-            }
-
-            /*
-            if (_trade.Volume < _symbol.Lot_min_size || _trade.Volume > _symbol.Lot_max_size)
-            {
-                return new Error(true, "Not a valid volume ! -> " + _trade.Volume.ToString());
-            }
-            */
-                
+            } 
 
             TradeTransInfoRecord ttOpenInfoRecord = new TradeTransInfoRecord(
                 _trade.Cmd,
@@ -130,17 +115,17 @@ namespace Frostmourne_basics
             _trade.Profit = Convert.ToDouble(tradeRecord.Profit);
             _trade.Opened_at = Tool.LongUnixTimeStampToDateTime(tradeRecord.Open_time);
             
-            if (_trade.Trade_type == 0)
-                _trade.Stop_loss = _trade.Opened_price - configuration.Stop_loss;
-            else
-                _trade.Stop_loss = _trade.Opened_price + configuration.Stop_loss;
+            //if (_trade.Trade_type == 0)
+            //    _trade.Stop_loss = _trade.Opened_price - configuration.Stop_loss;
+            //else
+            //    _trade.Stop_loss = _trade.Opened_price + configuration.Stop_loss;
 
             //TODO Setup Stop_loss
             
-            return _trade.Open_Trade(_api_connector, ref configuration, ref MyDB, ref _trade);
+            return _trade.Open_Trade(_api_connector, ref configuration, ref _trade);
         }
 
-        public static Error Get_open_trades_from_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, ref List<Trade> _trades)
+        public static Error Get_open_trades_from_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref List<Trade> _trades)
         {
             TradesResponse tradesResponse = APICommandFactory.ExecuteTradesCommand(_api_connector, true);
             
@@ -150,12 +135,12 @@ namespace Frostmourne_basics
             return MyDB.Get_trades_by_order_id(ref _trades, true);
         }
 
-        public static Error Close_trade_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, ref Trade _trade_to_close)
+        public static Error Close_trade_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref Trade _trade_to_close)
         {
             Error err;
             List<Trade> opened_trades = new List<Trade>();
             
-            err = Get_open_trades_from_xtb(ref _api_connector, ref configuration, ref MyDB, ref opened_trades);
+            err = Get_open_trades_from_xtb(ref _api_connector, ref configuration, ref opened_trades);
             if (err.IsAnError)
                 return err;
 
@@ -221,6 +206,6 @@ namespace Frostmourne_basics
             _trade_to_close.Closed_at = Tool.LongUnixTimeStampToDateTime(tradeClosed.Close_time);
             
             return MyDB.Close_trade(_trade_to_close);
-        }
+        }*/
     }
 }

@@ -19,14 +19,6 @@ namespace Frostmourne_basics
 
         public string Api_token { get; set; }
 
-        public string Mysql_host { get; set; }
-        public string Mysql_login { get; set; }
-        public string Mysql_pwd { get; set; }
-        public string Mysql_database { get; set; }
-        public string Mysql_port { get; set; }
-
-        public double Stop_loss { get; set; }
-
         public void Set_server(string type)
         {
             if (type == "prod")

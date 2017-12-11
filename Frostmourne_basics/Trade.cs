@@ -1,5 +1,4 @@
-﻿using Frostmourne_basics.Dbs;
-using System;
+﻿using System;
 using xAPI.Codes;
 using xAPI.Sync;
 
@@ -76,7 +75,7 @@ namespace Frostmourne_basics
             this.Digits = _digits;
         }
 
-        public Error Open_Trade(SyncAPIConnector _api_connector, ref Configuration configuration, ref Mysql MyDB, ref Trade _trade)
+        /*public Error Open_Trade(SyncAPIConnector _api_connector, ref Configuration configuration, ref Trade _trade)
         {
             Error err;
 
@@ -85,6 +84,6 @@ namespace Frostmourne_basics
                 return err;
             
             return new Error(false, "Trade opened !");
-        }
+        }*/
     }
 }
