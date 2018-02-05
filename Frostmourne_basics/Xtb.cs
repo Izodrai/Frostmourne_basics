@@ -10,7 +10,9 @@ namespace Frostmourne_basics
 {
     public class Xtb
     {
-        public static Error Retrieve_bids_of_symbol_from_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, string _symbol, xAPI.Codes.PERIOD_CODE _period, Int64 tFrom, ref List<Bid> bids)
+
+        
+        public static Error Retrieve_bids_of_symbol_from_xtb(ref SyncAPIConnector _api_connector, string _symbol, xAPI.Codes.PERIOD_CODE _period, Int64 tFrom, ref List<Bid> bids)
         {
 
             Log.Info("Retrieve XTB data for -> " + _symbol);
@@ -39,14 +41,10 @@ namespace Frostmourne_basics
             return new Error(false, "Data symbol retrieved !");
         }
         /*
-        public static Error Open_trade_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, Symbol _symbol, ref Trade _trade)
+        public static Error Open_trade_xtb(ref SyncAPIConnector _api_connector, Symbol _symbol, ref Trade _trade)
         {
             Error err;
             List<Symbol> not_inactiv_symbols = new List<Symbol>();
-
-            err = MyDB.Load_not_inactive_symbols(ref not_inactiv_symbols);
-            if (err.IsAnError)
-                return err;
 
             foreach (Symbol not_inactiv_s in not_inactiv_symbols)
             {
@@ -123,24 +121,24 @@ namespace Frostmourne_basics
             //TODO Setup Stop_loss
             
             return _trade.Open_Trade(_api_connector, ref configuration, ref _trade);
-        }
+        }*/
 
-        public static Error Get_open_trades_from_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref List<Trade> _trades)
+        public static Error Get_open_trades_from_xtb(ref SyncAPIConnector _api_connector, ref List<Trade> _trades)
         {
             TradesResponse tradesResponse = APICommandFactory.ExecuteTradesCommand(_api_connector, true);
             
             foreach (TradeRecord tr in tradesResponse.TradeRecords)
                 _trades.Add(new Trade(Convert.ToInt64(tr.Order2), Convert.ToDouble(tr.Profit)));
             
-            return MyDB.Get_trades_by_order_id(ref _trades, true);
+            return new Error(false, "");
         }
-
-        public static Error Close_trade_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref Trade _trade_to_close)
+        /*
+        public static Error Close_trade_xtb(ref SyncAPIConnector _api_connector, ref Trade _trade_to_close)
         {
             Error err;
             List<Trade> opened_trades = new List<Trade>();
             
-            err = Get_open_trades_from_xtb(ref _api_connector, ref configuration, ref opened_trades);
+            err = Get_open_trades_from_xtb(ref _api_connector, ref opened_trades);
             if (err.IsAnError)
                 return err;
 

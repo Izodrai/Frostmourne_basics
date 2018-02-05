@@ -22,8 +22,7 @@ namespace Frostmourne_basics
             //////////////////////////////////////////////
 
             Xtb_api_connector = new SyncAPIConnector(configuration.Xtb_server);
-
-
+            
             //////////////////////////////////////////////
             //
             // Renseignement des Credentials 

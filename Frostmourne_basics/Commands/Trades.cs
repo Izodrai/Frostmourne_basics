@@ -5,7 +5,7 @@ namespace Frostmourne_basics.Commands
 {
     public partial class Commands
     {
-        /*public static Error Open_trade_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, Symbol _symbol, ref Trade _trade)
+        public static Error Open_trade_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, Symbol _symbol, ref Trade _trade)
         {
             Error err;
 
@@ -13,9 +13,9 @@ namespace Frostmourne_basics.Commands
             if (err.IsAnError)
                 return err;
 
-            err = Xtb.Open_trade_xtb(ref _api_connector, ref configuration, _symbol, ref _trade);
+            /*err = Xtb.Open_trade_xtb(ref _api_connector, ref configuration, _symbol, ref _trade);
             if (err.IsAnError)
-                return err;
+                return err;*/
 
             err = Tool.CloseXtb(ref _api_connector);
             return err;
@@ -29,14 +29,14 @@ namespace Frostmourne_basics.Commands
             if (err.IsAnError)
                 return err;
 
-            err = Xtb.Get_open_trades_from_xtb(ref _api_connector, ref configuration, ref _trades);
+            err = Xtb.Get_open_trades_from_xtb(ref _api_connector, ref _trades);
             if (err.IsAnError)
                 return err;
 
             err = Tool.CloseXtb(ref _api_connector);
             return err;
         }
-
+        /*
         public static Error Close_trade_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref Trade _trade)
         {
             Error err;

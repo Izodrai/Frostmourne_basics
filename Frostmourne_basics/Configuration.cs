@@ -10,22 +10,24 @@ namespace Frostmourne_basics
 {
     public class Configuration
     {
-        public string Environnement { get; set; }
-        public bool Prod { get; set; }
-
         public string Xtb_login { get; set; }
         public string Xtb_pwd { get; set; }
         public Server Xtb_server { get; set; }
 
-        public string Api_token { get; set; }
+        public Configuration(string _xtb_login, string _xtb_pwd, string _type)
+        {
+            this.Xtb_login = _xtb_login;
+            this.Xtb_pwd = _xtb_pwd;
+            Set_server(_type);
+        }
 
         public void Set_server(string type)
         {
-            if (type == "prod")
+            if (type == "real")
             {
                 this.Xtb_server = Servers.REAL;
             }
-                else
+            else
             {
                 this.Xtb_server = Servers.DEMO;
             }
