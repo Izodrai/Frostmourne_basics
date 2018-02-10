@@ -36,7 +36,7 @@ namespace Frostmourne_basics.Commands
             err = Tool.CloseXtb(ref _api_connector);
             return err;
         }
-        /*
+        
         public static Error Close_trade_xtb(ref SyncAPIConnector _api_connector, ref Configuration configuration, ref Trade _trade)
         {
             Error err;
@@ -45,12 +45,12 @@ namespace Frostmourne_basics.Commands
             if (err.IsAnError)
                 return err;
 
-            err = Xtb.Close_trade_xtb(ref _api_connector, ref configuration, ref _trade);
+            /*err = Xtb.Close_trade_xtb(ref _api_connector, ref configuration, ref _trade);
             if (err.IsAnError)
-                return err;
+                return err;*/
 
             err = Tool.CloseXtb(ref _api_connector);
             return err;
-        }*/
+        }
     }
 }
